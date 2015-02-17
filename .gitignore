@@ -1,3 +1,7 @@
+# Personal project files and derived files
+data/
+submissions/
+
 # History files
 .Rhistory
 
@@ -9,3 +13,6 @@
 
 # RStudio files
 .Rproj.user/
+
+# Mac OS X files
+.DS_Store
