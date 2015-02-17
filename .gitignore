@@ -1,6 +1,6 @@
 # Personal project files and derived files
-data/
 submissions/
+temp/
 
 # History files
 .Rhistory
