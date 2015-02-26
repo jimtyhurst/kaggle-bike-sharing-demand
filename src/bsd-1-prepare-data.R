@@ -96,14 +96,17 @@ training.factors$season <- mapvalues(
 )
 
 #####
-# Derive 'season.by.month' factor: 
-#   [WINTER, SPRING, SUMMER, FALL] 
-# from datetime, based on whole months and
-# assuming northern hemisphere, since data is for Washington, DC: 
-#   WINTER: Dec - Feb
-#   SPRING: Mar - May
-#   SUMMER: Jun - Aug
-#   FALL: Sep - Nov
+# Extract individual fields from 'datetime'.
+
+# Extract 'hour' factor from 'datetime'.
+date.to.hour <- function(x) {
+  # Extract 24-hour Hour as a string from a date.
+  return(format(x, "%H"))
+}
+training.factors$hour <- factor(
+  sapply(training.factors$datetime, date.to.hour),
+  levels=c("00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23")
+)
 
 # Extract 'month' factor from 'datetime'.
 date.to.month <- function(x) {
@@ -115,7 +118,14 @@ training.factors$month <- factor(
   levels=c("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
 )
 
-# Derive 'season.by.month' from 'month'.
+# Derive 'season.by.month' factor: 
+#   [WINTER, SPRING, SUMMER, FALL] 
+# from datetime, based on whole months and
+# assuming northern hemisphere, since data is for Washington, DC: 
+#   WINTER: Dec - Feb
+#   SPRING: Mar - May
+#   SUMMER: Jun - Aug
+#   FALL: Sep - Nov
 month.to.season <- function(x) {
   switch(as.character(x),
     "JAN" = "WINTER",
@@ -175,6 +185,7 @@ training.factors$workingday <- factor(sapply(training.factors$workingday, int.to
 # Re-order the columns, so that similar factors are next to each other.
 training.factors <- training.factors[
   c("datetime",
+    "hour",
     "month",
     "season",
     "season.by.month",
@@ -193,5 +204,18 @@ training.factors <- training.factors[
 ]
 
 #####
+# Divide the training sample roughly 75% for training for models and 25% for
+# validating those models.
+# Mark days divisible by 4 as training data == FALSE, otherwise training data == TRUE.
+# 'validation.samples' are for my development testing, which is different than the
+# test.csv file which was given as part of the competition, because test.csv
+# does not have the count data.
+training.factors$is.training <- (as.integer(format(training.factors$datetime, "%d"))) %% 4 != 0
+training.samples <- training.factors[training.factors$is.training,]
+validation.samples <- training.factors[!training.factors$is.training,]
+
+#####
 # Save the enhanced data back to the file system.
-write.csv(training.factors, file="temp/train-factors.csv", row.names=FALSE)
+write.csv(training.factors, file="temp/train-enhanced.csv", row.names=FALSE)
+write.csv(training.samples, file="temp/samples-for-training.csv", row.names=FALSE)
+write.csv(validation.samples, file="temp/samples-for-validating.csv", row.names=FALSE)
